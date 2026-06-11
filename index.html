@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VA Newbies PH — Starter Portal</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #fff;
+    color: #000;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 16px 48px;
+  }
+  .top-bar {
+    width: 100%;
+    max-width: 520px;
+    border-bottom: 2px solid #000;
+    padding: 20px 0 14px;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+  .logo span { font-weight: 300; }
+  .page { display: none; width: 100%; max-width: 520px; }
+  .page.active { display: block; }
+
+  h1 { font-size: 26px; font-weight: 700; line-height: 1.2; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .sub { font-size: 14px; color: #444; margin-bottom: 32px; line-height: 1.5; }
+
+  label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  input[type="email"], input[type="password"] {
+    width: 100%;
+    border: 2px solid #000;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fff;
+    color: #000;
+    outline: none;
+    margin-bottom: 20px;
+    border-radius: 0;
+    -webkit-appearance: none;
+  }
+  input:focus { box-shadow: 3px 3px 0 #000; }
+  input::placeholder { color: #aaa; }
+
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: #000;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 2px solid #000;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .btn:hover { background: #fff; color: #000; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .error-msg {
+    border: 2px solid #000;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* BANNER */
+  .banner {
+    background: #000;
+    color: #fff;
+    padding: 16px 20px;
+    text-align: center;
+    margin-bottom: 32px;
+    width: 100%;
+    max-width: 520px;
+  }
+  .banner-label { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 6px; color: #aaa; }
+  .banner-text { font-size: 18px; font-weight: 700; line-height: 1.4; }
+  .banner-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+
+  /* COUNTDOWN */
+  .countdown-wrap {
+    border: 3px solid #000;
+    padding: 32px 24px;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .countdown-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 16px; color: #444; }
+  .countdown-digits {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .countdown-unit { text-align: center; }
+  .countdown-num {
+    font-size: 64px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    line-height: 1;
+    display: block;
+  }
+  .countdown-unit-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #666;
+    margin-top: 4px;
+    display: block;
+  }
+  .countdown-sep {
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+    padding-top: 4px;
+    color: #000;
+  }
+  .countdown-sub { font-size: 13px; color: #444; margin-top: 16px; line-height: 1.5; }
+
+  /* LOCKED MESSAGE */
+  .locked-box {
+    border: 2px solid #000;
+    padding: 20px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .locked-box h3 { font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .locked-box p { font-size: 13px; color: #444; line-height: 1.6; }
+
+  /* STUDENT INFO */
+  .student-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #000;
+    padding-bottom: 12px;
+    margin-bottom: 28px;
+    font-size: 12px;
+  }
+  .student-name { font-weight: 700; font-size: 13px; }
+  .logout-btn {
+    background: none;
+    border: 1px solid #000;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .logout-btn:hover { background: #000; color: #fff; }
+
+  /* NOT APPROVED */
+  .pending-box {
+    border: 2px solid #000;
+    padding: 28px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .pending-box h2 { font-size: 18px; margin-bottom: 10px; }
+  .pending-box p { font-size: 13px; color: #444; line-height: 1.6; }
+
+  @media (max-width: 480px) {
+    .countdown-num { font-size: 48px; }
+    .countdown-sep { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar" id="topBar">
+  <div class="logo">VA Newbies <span>PH</span></div>
+  <div style="font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#666;">Starter Portal</div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════════════════ -->
+<div class="page active" id="page-login">
+  <h1>Welcome to Starter.</h1>
+  <p class="sub">Log in with the email and password you used when you enrolled.</p>
+
+  <div class="error-msg" id="login-error">Incorrect email or password. Please try again.</div>
+
+  <label for="login-email">Email Address</label>
+  <input type="email" id="login-email" placeholder="yourname@email.com" onkeydown="if(event.key==='Enter')handleLogin()">
+
+  <label for="login-password">Password</label>
+  <input type="password" id="login-password" placeholder="Your enrollment password" onkeydown="if(event.key==='Enter')handleLogin()">
+
+  <button class="btn" id="login-btn" onclick="handleLogin()">Log In</button>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PENDING / NOT APPROVED
+══════════════════════════════════════════════ -->
+<div class="page" id="page-pending">
+  <div class="pending-box">
+    <h2>Enrollment Under Review</h2>
+    <p>Your payment submission is still being reviewed by Coach Di. You will receive an email once your enrollment is confirmed. Please check back later.</p>
+  </div>
+  <button class="btn" onclick="handleLogout()">Log Out</button>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     HOLDING PAGE (Approved, pre-June 27)
+══════════════════════════════════════════════ -->
+<div class="page" id="page-holding">
+
+  <div class="student-bar">
+    <div>
+      <div style="font-size:10px; color:#666; text-transform:uppercase; letter-spacing:0.08em;">Logged in as</div>
+      <div class="student-name" id="student-email"></div>
+    </div>
+    <button class="logout-btn" onclick="handleLogout()">Log Out</button>
+  </div>
+
+  <div class="banner">
+    <div class="banner-label">Cohort 01 — You Are In</div>
+    <div class="banner-text">We Start June 27, 2026 at 7:00 PM Manila Time</div>
+    <div class="banner-sub">Philippines Standard Time (PHT) · UTC+8</div>
+  </div>
+
+  <div class="countdown-wrap">
+    <div class="countdown-label">Counting down to Day 1</div>
+    <div class="countdown-digits">
+      <div class="countdown-unit">
+        <span class="countdown-num" id="cd-days">00</span>
+        <span class="countdown-unit-label">Days</span>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit">
+        <span class="countdown-num" id="cd-hours">00</span>
+        <span class="countdown-unit-label">Hours</span>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit">
+        <span class="countdown-num" id="cd-mins">00</span>
+        <span class="countdown-unit-label">Minutes</span>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit">
+        <span class="countdown-num" id="cd-secs">00</span>
+        <span class="countdown-unit-label">Seconds</span>
+      </div>
+    </div>
+    <div class="countdown-sub">Your portal will unlock automatically when the cohort begins.<br>No action needed from you.</div>
+  </div>
+
+  <div class="locked-box">
+    <h3>Portal Locked Until June 27</h3>
+    <p>Your enrollment is confirmed. Everything is set. Just show up on June 27 at 7:00 PM Manila Time ready to start. We will see you then.</p>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PORTAL OPEN PAGE (June 27 onwards)
+══════════════════════════════════════════════ -->
+<div class="page" id="page-portal">
+  <div class="student-bar">
+    <div>
+      <div style="font-size:10px; color:#666; text-transform:uppercase; letter-spacing:0.08em;">Logged in as</div>
+      <div class="student-name" id="student-email-2"></div>
+    </div>
+    <button class="logout-btn" onclick="handleLogout()">Log Out</button>
+  </div>
+
+  <div class="banner">
+    <div class="banner-label">Cohort 01 — Now Live</div>
+    <div class="banner-text">Welcome to Starter. Let's get to work.</div>
+  </div>
+
+  <!-- Portal content goes here when built -->
+  <div style="border:2px solid #000; padding:32px; text-align:center; margin-bottom:24px;">
+    <p style="font-size:14px; color:#444; line-height:1.8;">Portal content is being set up.<br>Check back shortly -- Coach Di is getting everything ready for you.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════ -->
+<script>
+const SUPABASE_URL = 'https://jgpvdspdudkvkqwnpfcs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncHZkc3BkdWRrdmtxd25wZmNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5Mzc5MDcsImV4cCI6MjA5NjUxMzkwN30.xcpI7fNVrlUi8-tvC_e6X3CT0Hz6ilD-42ZgQtdycdo';
+
+// June 27 2026 7PM Manila (UTC+8) = June 27 2026 11:00 UTC
+const COHORT_START = new Date('2026-06-27T11:00:00.000Z');
+
+let countdownInterval = null;
+let currentUserEmail = null;
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const pg = document.getElementById('page-' + id);
+  if (pg) pg.classList.add('active');
+}
+
+async function sb(path, opts = {}) {
+  const res = await fetch(SUPABASE_URL + path, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      ...opts.headers
+    },
+    method: opts.method || 'GET',
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) { const e = await res.json(); throw e; }
+  return res.status === 204 ? null : res.json();
+}
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.textContent = 'Logging in...';
+
+  try {
+    const authRes = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pw })
+    });
+    const authData = await authRes.json();
+    if (authData.error) throw authData.error;
+
+    // Check status in enrollees table
+    const rec = await sb('/rest/v1/starter_enrollees?email=eq.' + encodeURIComponent(email) + '&select=status,full_name');
+    if (!rec || rec.length === 0) throw { message: 'Account not found.' };
+
+    const status = rec[0].status;
+    currentUserEmail = email;
+
+    if (status !== 'approved') {
+      showPage('pending');
+      return;
+    }
+
+    // Approved -- check if cohort has started
+    document.getElementById('student-email').textContent = email;
+    document.getElementById('student-email-2').textContent = email;
+
+    const now = new Date();
+    if (now >= COHORT_START) {
+      showPage('portal');
+    } else {
+      showPage('holding');
+      startCountdown();
+    }
+
+  } catch(e) {
+    errEl.textContent = e.message || 'Incorrect email or password.';
+    errEl.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Log In';
+  }
+}
+
+function startCountdown() {
+  if (countdownInterval) clearInterval(countdownInterval);
+
+  function tick() {
+    const now = new Date();
+    const diff = COHORT_START.getTime() - now.getTime();
+
+    if (diff <= 0) {
+      clearInterval(countdownInterval);
+      showPage('portal');
+      return;
+    }
+
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+
+    document.getElementById('cd-days').textContent = String(days).padStart(2, '0');
+    document.getElementById('cd-hours').textContent = String(hours).padStart(2, '0');
+    document.getElementById('cd-mins').textContent = String(mins).padStart(2, '0');
+    document.getElementById('cd-secs').textContent = String(secs).padStart(2, '0');
+  }
+
+  tick();
+  countdownInterval = setInterval(tick, 1000);
+}
+
+function handleLogout() {
+  currentUserEmail = null;
+  if (countdownInterval) clearInterval(countdownInterval);
+  showPage('login');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+}
+</script>
+</body>
+</html>
