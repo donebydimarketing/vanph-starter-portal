@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VA Newbies PH — Content Admin</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #000; min-height: 100vh; padding: 0 16px 60px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  .topbar { border-bottom: 2px solid #000; padding: 24px 0 16px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; }
+  .topbar h1 { font-size: 20px; font-weight: 700; }
+  .topbar .sub { font-size: 12px; color: #666; margin-top: 2px; }
+  .logout-btn { border: 1px solid #000; background: #fff; padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .logout-btn:hover { background: #000; color: #fff; }
+
+  .login-wrap { max-width: 380px; margin: 80px auto; }
+  .login-wrap h1 { font-size: 22px; margin-bottom: 8px; }
+  .login-wrap p { font-size: 13px; color: #666; margin-bottom: 24px; }
+  input[type="password"], input[type="text"], input[type="url"] {
+    width: 100%; border: 2px solid #000; padding: 11px 14px; font-size: 14px; font-family: inherit; margin-bottom: 14px;
+  }
+  .btn { background: #000; color: #fff; border: 2px solid #000; padding: 11px 22px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; width: 100%; }
+  .btn:hover { background: #fff; color: #000; }
+  .btn-sm { width: auto; padding: 8px 18px; font-size: 12px; }
+
+  .week-card { border: 2px solid #000; margin-bottom: 16px; }
+  .week-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #f8f8f8; border-bottom: 1px solid #ddd; cursor: pointer; }
+  .week-card-header:hover { background: #f0f0f0; }
+  .week-card-title { font-size: 14px; font-weight: 700; }
+  .week-card-meta { font-size: 11px; color: #666; margin-top: 2px; }
+  .week-card-status { display: flex; gap: 6px; }
+  .status-dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #000; }
+  .status-dot.filled { background: #000; }
+  .chevron { font-size: 12px; color: #999; transition: transform 0.2s; }
+  .week-card.open .chevron { transform: rotate(90deg); }
+
+  .week-card-body { display: none; padding: 18px; }
+  .week-card.open .week-card-body { display: block; }
+
+  .field-group { margin-bottom: 16px; }
+  .field-group label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; color: #333; }
+  .field-group .hint { font-size: 11px; color: #888; margin-bottom: 6px; }
+  .field-row { display: flex; gap: 8px; align-items: center; }
+  .field-row input { flex: 1; margin-bottom: 0; }
+  .save-field-btn { background: #fff; border: 2px solid #000; padding: 11px 16px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .save-field-btn:hover { background: #000; color: #fff; }
+  .save-field-btn.saved { background: #000; color: #fff; }
+
+  .divider { border-top: 1px solid #eee; margin: 16px 0; }
+
+  .schedule-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px; color: #555; margin-bottom: 14px; }
+  .schedule-row div strong { display: block; font-size: 10px; text-transform: uppercase; color: #999; margin-bottom: 2px; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: #000; color: #fff; padding: 12px 20px; font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  .error-msg { border: 2px solid #000; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .error-msg.show { display: block; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-view">
+  <h1>Content Admin</h1>
+  <p>VA Newbies PH — Starter Cohort 01<br>For Cat and Coach Di only.</p>
+  <div class="error-msg" id="login-error">Incorrect password.</div>
+  <input type="password" id="admin-pass" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()">
+  <button class="btn" onclick="login()">Enter</button>
+</div>
+
+<!-- MAIN ADMIN -->
+<div class="wrap" id="main-view" style="display:none;">
+  <div class="topbar">
+    <div>
+      <h1>Content Admin</h1>
+      <div class="sub">Manage week videos, handbooks, and Saturday call replays</div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Log Out</button>
+  </div>
+
+  <div id="weeks-container">Loading...</div>
+
+  <div class="toast" id="toast">Saved</div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://jgpvdspdudkvkqwnpfcs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncHZkc3BkdWRrdmtxd25wZmNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5Mzc5MDcsImV4cCI6MjA5NjUxMzkwN30.xcpI7fNVrlUi8-tvC_e6X3CT0Hz6ilD-42ZgQtdycdo';
+const ADMIN_PASSWORD = 'vanph2026admin'; // same password as the enrollment admin
+
+let weekData = [];
+
+async function sb(path, opts = {}) {
+  const res = await fetch(SUPABASE_URL + path, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || '',
+      ...opts.headers
+    },
+    method: opts.method || 'GET',
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) { const e = await res.json(); throw e; }
+  return res.status === 204 ? null : res.json();
+}
+
+function login() {
+  const pw = document.getElementById('admin-pass').value;
+  if (pw !== ADMIN_PASSWORD) {
+    document.getElementById('login-error').classList.add('show');
+    return;
+  }
+  document.getElementById('login-view').style.display = 'none';
+  document.getElementById('main-view').style.display = 'block';
+  loadWeeks();
+}
+
+function logout() {
+  document.getElementById('main-view').style.display = 'none';
+  document.getElementById('login-view').style.display = 'block';
+  document.getElementById('admin-pass').value = '';
+}
+
+function formatManila(dt) {
+  if (!dt) return '—';
+  const d = new Date(dt);
+  return d.toLocaleString('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' Manila';
+}
+
+async function loadWeeks() {
+  try {
+    const data = await sb('/rest/v1/week_content?select=*&order=week_number.asc');
+    weekData = data;
+    renderWeeks();
+  } catch (e) {
+    document.getElementById('weeks-container').innerHTML = '<p style="color:#900;">Failed to load. Check console.</p>';
+    console.error(e);
+  }
+}
+
+function renderWeeks() {
+  const container = document.getElementById('weeks-container');
+  container.innerHTML = weekData.map((w, idx) => {
+    const hasModuleVideo = !!w.module_video_url;
+    const hasHandbook = !!w.handbook_url;
+    const hasReplay = !!w.replay_url;
+    const hasZoom = !!w.zoom_link;
+
+    const weekLabel = w.week_number === 0 ? 'Orientation' : 'Week ' + w.week_number;
+
+    return `
+    <div class="week-card" id="card-${w.id}">
+      <div class="week-card-header" onclick="toggleCard('${w.id}')">
+        <div>
+          <div class="week-card-title">${weekLabel} — ${w.week_title}</div>
+          <div class="week-card-meta">Call: ${formatManila(w.call_datetime)} &nbsp;·&nbsp; Unlocks: ${formatManila(w.unlock_datetime)}</div>
+        </div>
+        <div class="week-card-status">
+          <span class="status-dot ${hasZoom ? 'filled' : ''}" title="Zoom link"></span>
+          <span class="status-dot ${hasReplay ? 'filled' : ''}" title="Replay"></span>
+          <span class="status-dot ${hasModuleVideo ? 'filled' : ''}" title="Module video"></span>
+          <span class="status-dot ${hasHandbook ? 'filled' : ''}" title="Handbook"></span>
+          <span class="chevron">▸</span>
+        </div>
+      </div>
+      <div class="week-card-body">
+
+        ${w.week_number > 0 ? `
+        <div class="field-group">
+          <label>Week Module Video (YouTube unlisted link)</label>
+          <div class="hint">Shown when students open this week's module, alongside the handbook and tasks.</div>
+          <div class="field-row">
+            <input type="url" id="module-${w.id}" value="${w.module_video_url || ''}" placeholder="https://youtube.com/watch?v=...">
+            <button class="save-field-btn" onclick="saveField('${w.id}', 'module_video_url', 'module-${w.id}', this)">Save</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Handbook / Workbook Link</label>
+          <div class="hint">Google Drive PDF link for this week's workbook.</div>
+          <div class="field-row">
+            <input type="url" id="handbook-${w.id}" value="${w.handbook_url || ''}" placeholder="https://drive.google.com/...">
+            <button class="save-field-btn" onclick="saveField('${w.id}', 'handbook_url', 'handbook-${w.id}', this)">Save</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        ` : ''}
+
+        <div class="field-group">
+          <label>Zoom Join Link (live call)</label>
+          <div class="hint">Appears on student dashboard 1 hour before the call.</div>
+          <div class="field-row">
+            <input type="url" id="zoom-${w.id}" value="${w.zoom_link || ''}" placeholder="https://zoom.us/j/...">
+            <button class="save-field-btn" onclick="saveField('${w.id}', 'zoom_link', 'zoom-${w.id}', this)">Save</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Saturday Call Replay (YouTube unlisted link)</label>
+          <div class="hint">Add this right after the call ends. Shown on dashboard until Monday 9AM Manila, then automatically disappears.</div>
+          <div class="field-row">
+            <input type="url" id="replay-${w.id}" value="${w.replay_url || ''}" placeholder="https://youtube.com/watch?v=...">
+            <button class="save-field-btn" onclick="saveField('${w.id}', 'replay_url', 'replay-${w.id}', this)">Save</button>
+          </div>
+        </div>
+
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(id) {
+  document.getElementById('card-' + id).classList.toggle('open');
+}
+
+async function saveField(weekId, column, inputId, btn) {
+  const value = document.getElementById(inputId).value.trim();
+  btn.textContent = 'Saving...';
+  try {
+    await sb('/rest/v1/week_content?id=eq.' + weekId, {
+      method: 'PATCH',
+      body: { [column]: value, updated_at: new Date().toISOString() }
+    });
+    btn.textContent = 'Saved ✓';
+    btn.classList.add('saved');
+    showToast('Saved');
+    setTimeout(() => { btn.textContent = 'Save'; btn.classList.remove('saved'); }, 2000);
+    // Update local cache + status dots without full reload
+    const w = weekData.find(x => x.id === weekId);
+    if (w) w[column] = value;
+    renderWeeks();
+    // Re-open the card that was just edited
+    document.getElementById('card-' + weekId).classList.add('open');
+  } catch (e) {
+    btn.textContent = 'Failed — Retry';
+    console.error(e);
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>
